@@ -1,0 +1,37 @@
+
+# mysql 数据库：https://dev.mysql.com/downloads/mysql/
+
+## mysql安装和使用
+## nodejs链接mysql
+## API连接mysql
+## 用户名、权限
+
+# mysql worlkbench（可视化）：https://dev.mysql.com/downloads/workbench/
+
+
+# 操作
+ 建库
+ 建表
+ 表操作
+
+# 建库
+ 创建myblog数据库
+ 执行 show databases;查询
+
+# 操作表
+## 增删改查
+use myblog 
+-- show tables
+-- insert into users(username,`password`,realname) values('zhangsan'，'123','张三')
+-- insert into users(username,`password`,realname) values('lisi'，'123','李四')
+
+## 查询
+-- select * from users；
+-- select id,username from users；
+select* from users where username='zhangsan' and `password`='123'
+模糊查询
+select* from users where username like '%zhang%'；
+
+排序
+select* from users where password like '%zhang%' order by id desc；
+
