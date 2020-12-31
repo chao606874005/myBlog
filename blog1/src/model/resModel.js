@@ -13,9 +13,9 @@ class BaseModel {
       }
   }
 }
-
 class SuccessModel extends BaseModel {
   constructor(data, message) {
+    console.log('SuccessModel-data',data)
       super(data, message)
       this.errno = 0
   }
