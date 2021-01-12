@@ -15,11 +15,7 @@ function exec(sql) {
                 reject(err)
                 return
             }
-            // JSON的格式化处理，解决：nodejs连接MySQL返回的数据有RowDataPacket问题
-            var dataString = JSON.stringify(result);
-            var dataParse = JSON.parse(dataString);
-
-            resolve(dataParse)
+            resolve(result)
         })
     })
     return promise

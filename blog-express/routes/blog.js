@@ -46,8 +46,10 @@ router.get('/detail', (req, res, next) => {
     })
 });
 
-router.post('/new', loginCheck, (req, res, next) => {
-    req.body.author = req.session.username
+// router.post('/new', loginCheck, (req, res, next) => {
+router.post('/new',  (req, res, next) => {
+    req.body.author = req.session.username || '刘超凡'
+    console.log('req.body=',req.body)
     const result = newBlog(req.body)
     return result.then(data => {
         res.json(
@@ -56,7 +58,8 @@ router.post('/new', loginCheck, (req, res, next) => {
     })
 })
 
-router.post('/update', loginCheck, (req, res, next) => {
+// router.post('/update', loginCheck, (req, res, next) => {
+router.post('/update', (req, res, next) => {
     const result = updateBlog(req.query.id, req.body)
     return result.then(val => {
         if (val) {

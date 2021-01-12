@@ -1,85 +1,76 @@
-const express = require('express')
+var createError = require('http-errors');
+var express = require('express');
+var path = require('path');
+var fs = require('fs');
+var cookieParser = require('cookie-parser');
+var logger = require('morgan');
+const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
 
-// 本次 http 请求的实例
-const app = express()
+// var indexRouter = require('./routes/index');
+// var usersRouter = require('./routes/users');
+const blogRouter = require('./routes/blog')
+const userRouter = require('./routes/user')
 
-app.use((req, res, next) => {
-    console.log('请求开始...', req.method, req.url)
-    next()
-})
+var app = express();
 
-app.use((req, res, next) => {
-    // 假设在处理 cookie
-    req.cookie = {
-        userId: 'abc123'
-    }
-    next()
-})
+// // view engine setup
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
-app.use((req, res, next) => {
-    // 假设处理 post data
-    // 异步
-    setTimeout(() => {
-        req.body = {
-            a: 100,
-            b: 200
-        }
-        next()
-    })
-})
-
-app.use('/api', (req, res, next) => {
-    console.log('处理 /api 路由')
-    next()
-})
-
-app.get('/api', (req, res, next) => {
-    console.log('get /api 路由')
-    next()
-})
-app.post('/api', (req, res, next) => {
-    console.log('post /api 路由')
-    next()
-})
-
-// 模拟登录验证
-function loginCheck(req, res, next) {
-    setTimeout(() => {
-        console.log('模拟登陆成功')
-        // res.json({
-        //     errno: 0,
-        //     msg: '登录失败'
-        // })
-        // console.log('模拟登陆失败')
-        
-        next()
-    })
+const ENV = process.env.NODE_ENV
+if (ENV !== 'production') {
+  // 开发环境 / 测试环境
+  app.use(logger('dev'));
+} else {
+  // 线上环境
+  const logFileName = path.join(__dirname, 'logs', 'access.log')
+  const writeStream = fs.createWriteStream(logFileName, {
+    flags: 'a'
+  })
+  app.use(logger('combined', {
+    stream: writeStream
+  }));
 }
 
-app.get('/api/get-cookie', loginCheck, (req, res, next) => {
-    console.log('get /api/get-cookie')
-    res.json({
-        errno: 0,
-        data: req.cookie
-    })
-})
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/api/get-post-data', loginCheck, (req, res, next) => {
-    console.log('post /api/get-post-data')
-    res.json({
-        errno: 0,
-        data: req.body
-    })
+const redisClient = require('./db/redis')
+const sessionStore = new RedisStore({
+  client: redisClient
 })
+app.use(session({
+  secret: 'WJiol#23123_',
+  cookie: {
+    // path: '/',   // 默认配置
+    // httpOnly: true,  // 默认配置
+    maxAge: 24 * 60 * 60 * 1000
+  },
+  store: sessionStore
+}))
 
-app.use((req, res, next) => {
-    console.log('处理 404')
-    res.json({
-        errno: -1,
-        msg: '404 not fount'
-    })
-})
+// app.use('/', indexRouter);
+// app.use('/users', usersRouter);
+app.use('/api/blog', blogRouter);
+app.use('/api/user', userRouter);
 
-app.listen(3000, () => {
-    console.log('server is running on port 3000')
-})
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'dev' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
